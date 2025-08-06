@@ -4,6 +4,7 @@ class TransactionModel {
   final double amount;
   final String category;
   final DateTime date;
+  final String user;
 
   TransactionModel({
     required this.id,
@@ -11,6 +12,7 @@ class TransactionModel {
     required this.amount,
     required this.category,
     required this.date,
+    required this.user,
   });
 
   Map<String, dynamic> toJson() {
@@ -20,6 +22,7 @@ class TransactionModel {
       'amount': amount,
       'category': category,
       'date': date.toIso8601String(),
+      'user': user,
     };
   }
 
@@ -27,9 +30,10 @@ class TransactionModel {
     return TransactionModel(
       id: json['id'],
       title: json['title'],
-      amount: json['amount'],
+      amount: (json['amount'] as num).toDouble(),
       category: json['category'],
       date: DateTime.parse(json['date']),
+      user: json['user'],
     );
   }
 }

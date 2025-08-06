@@ -6,15 +6,17 @@ public class TransactionMessage {
     private double amount;
     private String category;
     private String date;
+    private String user;
 
     public TransactionMessage() {}
 
-    public TransactionMessage(String id, String title, double amount, String category, String date) {
+    public TransactionMessage(String id, String title, double amount, String category, String date, String user) {
         this.id = id;
         this.title = title;
         this.amount = amount;
         this.category = category;
         this.date = date;
+        this.user = user;
     }
 
     // Getters e Setters
@@ -56,5 +58,13 @@ public class TransactionMessage {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getUser() { 
+        return user; 
+    }
+    
+    public void setUser(String user) { 
+        this.user = user; 
     }
 }

@@ -53,6 +53,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                 amount: double.tryParse(_amountController.text) ?? 0.0,
                 category: _selectedCategory,
                 date: DateTime.now(),
+                user: 'teste_user',
               );
               widget.onAdd(transaction);
               Navigator.pop(context);
