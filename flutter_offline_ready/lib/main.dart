@@ -7,6 +7,7 @@ import 'providers/transaction_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/transactions_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/login_screen.dart';
 import 'widgets/add_transaction_sheet.dart';
 
 void main() {
@@ -19,10 +20,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => TransactionProvider())],
-      child: const MaterialApp(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
+      ],
+      child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: MainPage(),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const LoginScreen(),
+          '/main': (context) => const MainPage(), // ✅ Rota correta
+        },
       ),
     );
   }
@@ -38,12 +45,13 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
   late StompClient stompClient;
+  late String username;
 
-  final List<Widget> _pages = const [
-    HomeScreen(),
-    TransactionsScreen(),
-    SettingsScreen(),
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    username = ModalRoute.of(context)!.settings.arguments as String;
+  }
 
   @override
   void initState() {
@@ -52,7 +60,7 @@ class _MainPageState extends State<MainPage> {
       config: StompConfig.sockJS(
         url: 'http://10.0.2.2:8080/ws',
         onConnect: _onConnect,
-        onWebSocketError: (err) => print('Erro WebSocket: $err'),
+        onWebSocketError: (err) => debugPrint('Erro WebSocket: $err'),
       ),
     );
     stompClient.activate();
@@ -81,8 +89,14 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      HomeScreen(username: username), // ✅ Agora usa username real
+      const TransactionsScreen(),
+      const SettingsScreen(),
+    ];
+
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
