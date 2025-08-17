@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const LoginScreen(),
-          '/main': (context) => const MainPage(), // ✅ Rota correta
+          '/main': (context) => const MainPage(),
         },
       ),
     );
@@ -50,7 +50,9 @@ class _MainPageState extends State<MainPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    username = ModalRoute.of(context)!.settings.arguments as String;
+    final args = ModalRoute.of(context)!.settings.arguments;
+    // pega o username vindo da rota; se vier vazio, usa 'Guest'
+    username = (args is String && args.isNotEmpty) ? args : 'Guest';
   }
 
   @override
@@ -64,6 +66,17 @@ class _MainPageState extends State<MainPage> {
       ),
     );
     stompClient.activate();
+  }
+
+  void _openSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => AddTransactionSheet(
+        onAdd: _addTransaction,
+        username: username, // <<< usar 'username' (sem underline)
+      ),
+    );
   }
 
   void _onConnect(StompFrame frame) {
@@ -90,7 +103,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomeScreen(username: username), // ✅ Agora usa username real
+      HomeScreen(username: username), // usa o username real
       const TransactionsScreen(),
       const SettingsScreen(),
     ];
@@ -107,12 +120,7 @@ class _MainPageState extends State<MainPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            builder: (_) => AddTransactionSheet(onAdd: _addTransaction),
-          );
-        },
+        onPressed: _openSheet,
         child: const Icon(Icons.add),
       ),
     );

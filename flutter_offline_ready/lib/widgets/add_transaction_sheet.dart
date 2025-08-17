@@ -6,8 +6,13 @@ import 'package:uuid/uuid.dart';
 
 class AddTransactionSheet extends StatefulWidget {
   final Function(TransactionModel) onAdd;
+  final String username;
 
-  const AddTransactionSheet({super.key, required this.onAdd});
+  const AddTransactionSheet({
+    super.key,
+    required this.onAdd,          // <-- FALTAVA ESTA VÍRGULA
+    required this.username,
+  });
 
   @override
   State<AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -19,48 +24,65 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   String _selectedCategory = 'Alimentação';
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final categories = context.read<TransactionProvider>().categories;
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(labelText: 'Título'),
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(labelText: 'Título'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _amountController,
+                decoration: const InputDecoration(labelText: 'Valor'),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              DropdownButton<String>(
+                value: _selectedCategory,
+                items: categories
+                    .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                    .toList(),
+                onChanged: (val) => setState(() => _selectedCategory = val!),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  final tx = TransactionModel(
+                    id: const Uuid().v4(),
+                    title: _titleController.text.trim(),
+                    amount: double.tryParse(_amountController.text) ?? 0.0,
+                    category: _selectedCategory,
+                    date: DateTime.now(),
+                    user: widget.username, // <-- usa o mesmo user do Home
+                  );
+                  widget.onAdd(tx);
+                  Navigator.pop(context);
+                },
+                child: const Text('Adicionar'),
+              ),
+            ],
           ),
-          TextField(
-            controller: _amountController,
-            decoration: const InputDecoration(labelText: 'Valor'),
-            keyboardType: TextInputType.number,
-          ),
-          DropdownButton<String>(
-            value: _selectedCategory,
-            items: categories.map((cat) {
-              return DropdownMenuItem(value: cat, child: Text(cat));
-            }).toList(),
-            onChanged: (val) {
-              setState(() => _selectedCategory = val!);
-            },
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final transaction = TransactionModel(
-                id: const Uuid().v4(),
-                title: _titleController.text,
-                amount: double.tryParse(_amountController.text) ?? 0.0,
-                category: _selectedCategory,
-                date: DateTime.now(),
-                user: 'teste_user',
-              );
-              widget.onAdd(transaction);
-              Navigator.pop(context);
-            },
-            child: const Text('Adicionar'),
-          ),
-        ],
+        ),
       ),
     );
   }
